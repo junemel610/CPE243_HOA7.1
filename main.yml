@@ -1,0 +1,25 @@
+---
+- name: Collect Log Files
+  hosts: Control_Node
+  gather_facts: true
+  become: true
+
+  tasks:
+    - name: Create log directory
+      file:
+        path: /var/log/ansible
+        state: directory
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: '0755'
+
+    - name: Collect system logs
+      shell: journalctl > /var/log/ansible/system_logs.txt
+
+    - name: Collect logs for a specific service
+      shell: journalctl -u {{ service_name }} > /var/log/ansible/{{ service_name }}_logs.txt
+      when: service_name is defined
+
+    - name: Collect logs for a specific time range
+      shell: journalctl --since "{{ start_time }}" --until "{{ end_time }}" > /var/log/ansible/time_range_logs.txt
+      when: start_time is defined and end_time is defined
